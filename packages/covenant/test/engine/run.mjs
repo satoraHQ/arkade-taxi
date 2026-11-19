@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const vectors = resolve(here, "../v2-vectors.json");
+const carrier = resolve(here, "../../contracts/carrier_account.json");
 const ref = process.argv[2] ?? JSON.parse(readFileSync(vectors, "utf8")).engine;
 const dir = resolve(".reference/emulator-engine");
 
@@ -24,7 +25,16 @@ if (!present()) run("git", ["fetch", "-q", "origin", ref], { cwd: dir });
 run("git", ["checkout", "-q", ref], { cwd: dir });
 mkdirSync(resolve(dir, "taxiv2"), { recursive: true });
 copyFileSync(resolve(here, "engine_test.go"), resolve(dir, "taxiv2/engine_test.go"));
-run("go", ["test", "-count=1", "./taxiv2"], {
+mkdirSync(resolve(dir, "taxicarrier"), { recursive: true });
+copyFileSync(
+    resolve(here, "carrier_account_test.go"),
+    resolve(dir, "taxicarrier/carrier_account_test.go"),
+);
+run("go", ["test", "-count=1", "./taxiv2", "./taxicarrier"], {
     cwd: dir,
-    env: { ...process.env, TAXI_V2_VECTORS: vectors },
+    env: {
+        ...process.env,
+        TAXI_V2_VECTORS: vectors,
+        CARRIER_ARTIFACT: process.env.CARRIER_ARTIFACT ?? carrier,
+    },
 });
