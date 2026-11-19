@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const here = fileURLToPath(new URL(".", import.meta.url));
 const vectors = resolve(here, "../v2-vectors.json");
 const carrier = resolve(here, "../../contracts/carrier_account.json");
+const carrierVectors = resolve(here, "../carrier-vectors.json");
 const ref = process.argv[2] ?? JSON.parse(readFileSync(vectors, "utf8")).engine;
 const dir = resolve(".reference/emulator-engine");
 
@@ -36,5 +37,6 @@ run("go", ["test", "-count=1", "./taxiv2", "./taxicarrier"], {
         ...process.env,
         TAXI_V2_VECTORS: vectors,
         CARRIER_ARTIFACT: process.env.CARRIER_ARTIFACT ?? carrier,
+        CARRIER_VECTORS: process.env.CARRIER_ARTIFACT ? "" : carrierVectors,
     },
 });

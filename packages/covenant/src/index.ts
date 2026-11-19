@@ -23,3 +23,14 @@ export {
 } from "./vtxo.js";
 export { covenantSpendInput, type CovenantSpendInput } from "./spend.js";
 export { copyByteView, signerTransaction } from "./signer.js";
+export {
+    CARRIER_ARTIFACT,
+    CarrierAccountScript,
+    CarrierLeaf,
+    carrierArgs,
+    compileCarrier,
+    validateCarrierParams,
+    type CarrierAccountOptions,
+    type CarrierAccountParams,
+    type CarrierScripts,
+} from "./carrier.js";

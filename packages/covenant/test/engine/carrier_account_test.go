@@ -135,15 +135,41 @@ func load(t *testing.T) contract {
 		)
 	}
 	for _, fn := range a.Functions {
-		if fn.Arkade != nil {
-			require.Len(t, fn.Leaves, 1)
-			c.leaf[fn.Name] = assemble(t, fn.Leaves[0].Asm, params)
-		}
+		require.Len(t, fn.Leaves, 1)
+		c.leaf[fn.Name] = assemble(t, fn.Leaves[0].Asm, params)
 	}
 	for _, name := range []string{"deposit", "send", "close", "renew"} {
 		require.Contains(t, c.arkade, name)
 	}
+	requireVectors(t, c)
 	return c
+}
+
+// The TS builder writes carrier-vectors.json from the same keys; equal bytes
+// mean what runs here is what the client derives its address from.
+func requireVectors(t *testing.T, c contract) {
+	t.Helper()
+	path := os.Getenv("CARRIER_VECTORS")
+	if path == "" {
+		return
+	}
+	raw, err := os.ReadFile(path)
+	require.NoError(t, err)
+	var v struct {
+		ServerKey, EmulatorKey string
+		Arkade, Leaves         map[string]string
+	}
+	require.NoError(t, json.Unmarshal(raw, &v))
+	require.Equal(t, hex.EncodeToString(schnorr.SerializePubKey(serverKey)), v.ServerKey)
+	require.Equal(t, hex.EncodeToString(schnorr.SerializePubKey(emulatorKey)), v.EmulatorKey)
+	require.Len(t, v.Arkade, len(c.arkade))
+	require.Len(t, v.Leaves, len(c.leaf))
+	for name, script := range c.arkade {
+		require.Equal(t, v.Arkade[name], hex.EncodeToString(script), "arkade %s", name)
+	}
+	for name, leaf := range c.leaf {
+		require.Equal(t, v.Leaves[name], hex.EncodeToString(leaf), "leaf %s", name)
+	}
 }
 
 // assetIn[i], assetOut[i]: units of the carried asset at that index; zero is

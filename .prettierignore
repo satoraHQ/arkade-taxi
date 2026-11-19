@@ -15,3 +15,4 @@ packages/covenant/test/vectors.json
 packages/covenant/contracts/dust_covenant.json
 packages/covenant/contracts/carrier_account.json
 packages/covenant/src/dust-covenant-artifact.ts
+packages/covenant/src/carrier-account-artifact.ts
