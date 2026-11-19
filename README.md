@@ -170,7 +170,7 @@ then `pnpm install`, then `pnpm verify:artifacts`.
 Recompile the covenant from its Arkade source and prove no byte moved:
 
 ```bash
-pnpm artifact && git diff --exit-code packages/covenant/contracts packages/covenant/src/dust-covenant-artifact.ts
+pnpm artifact && git diff --exit-code packages/covenant/contracts packages/covenant/src/*-artifact.ts
 node packages/covenant/test/engine/run.mjs
 ```
 

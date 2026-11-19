@@ -1,0 +1,67 @@
+// A long-lived account: the lender's `loan` sats carry the owner's asset.
+// Every leaf that keeps the account binds out[i] to in[i] for i = the active
+// input, so two coins of one owner can never be folded into a single output.
+// scriptPubKey compares only the witness program, hence the version checks.
+pragma arkade ^0.1.0;
+
+contract CarrierAccount(
+  pubkey ownerKey,
+  pubkey lenderKey,
+  int loan,
+  // The raw BIP68 sequence, pushed as-is.
+  int exitDelay,
+  bytes32 assetTxid,
+  int assetGidx
+) {
+  // Anyone may pay in: the account is recreated in place and only grows.
+  function deposit() {
+    int i = this.activeInputIndex;
+    require(tx.outputs[i].witnessVersion == 1);
+    require(tx.outputs[i].scriptPubKey == tx.inputs[i].scriptPubKey);
+    require(tx.outputs[i].value >= tx.inputs[i].value);
+    int held = 0;
+    if (tx.inputs[i].assets.has(assetTxid, assetGidx)) {
+      held = tx.inputs[i].assets.lookup(assetTxid, assetGidx);
+    }
+    require(tx.outputs[i].assets.lookup(assetTxid, assetGidx) > held);
+  }
+
+  // The owner moves assets out; the loan stays in the recreated account.
+  function send() {
+    int i = this.activeInputIndex;
+    require(tx.outputs[i].witnessVersion == 1);
+    require(tx.outputs[i].scriptPubKey == tx.inputs[i].scriptPubKey);
+    require(tx.outputs[i].value >= loan);
+  }
+
+  function send(signature serverSig, signature ownerSig, signature emulatorSig) tapscript {
+    require(checkMultisig([server, ownerKey, emulator], [serverSig, ownerSig, emulatorSig]));
+  }
+
+  // The owner repays the loan and takes the rest wherever they like.
+  function close() {
+    int i = this.activeInputIndex;
+    require(tx.outputs[i].witnessVersion == 1);
+    require(tx.outputs[i].scriptPubKey == lenderKey);
+    require(tx.outputs[i].value == loan);
+  }
+
+  function close(signature serverSig, signature ownerSig, signature emulatorSig) tapscript {
+    require(checkMultisig([server, ownerKey, emulator], [serverSig, ownerSig, emulatorSig]));
+  }
+
+  // The owner alone, without the Arkade Service or the lender. The lender
+  // forfeits its loan on this path; that is the price of a unilateral exit.
+  function exit(signature ownerSig) tapscript {
+    require(older(exitDelay));
+    require(checkSig(ownerSig, ownerKey));
+  }
+
+  // As in DustCovenant: open to anyone, gated on a register intent.
+  function renew() {
+    require(tx.intent.field("type") == "register");
+    require(tx.intent.field("onchain_output_indexes") == "[]");
+    require(!tx.intent.has("cosigners_public_keys.1"));
+    require(this.tunnel(this.activeInputIndex - 1));
+  }
+}
