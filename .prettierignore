@@ -13,4 +13,5 @@ packages/covenant/test/vectors.json
 
 # Same deal, from arkadec: `pnpm artifact` writes both and CI diffs the result.
 packages/covenant/contracts/dust_covenant.json
+packages/covenant/contracts/carrier_account.json
 packages/covenant/src/dust-covenant-artifact.ts
