@@ -1,9 +1,11 @@
 import { defineConfig } from "vitest/config";
 
-// Runs against the isolated stack from e2e/carrier/carrier.env:
+// Each suite runs against its own isolated stack:
 //   git clone --depth 1 https://github.com/ArkLabsHQ/arkade-regtest .reference/arkade-regtest
 //   node .reference/arkade-regtest/regtest.mjs start --env e2e/carrier/carrier.env
 //   pnpm e2e:carrier
+//   node .reference/arkade-regtest/regtest.mjs start --env e2e/carrier/carrier-expiry.env
+//   pnpm e2e:carrier:expiry
 export default defineConfig({
     test: {
         include: ["e2e/carrier/**/*.carrier.test.ts"],
