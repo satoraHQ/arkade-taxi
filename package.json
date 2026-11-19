@@ -14,6 +14,7 @@
         "test": "vitest run --exclude e2e",
         "test:harness": "vitest run scripts/test/harness.test.ts",
         "e2e:stack": "node scripts/e2e-stack.mjs",
+        "e2e:carrier": "vitest run --config vitest.carrier.config.ts",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "artifact": "node scripts/gen-artifact.mjs",
